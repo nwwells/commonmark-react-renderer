@@ -1,3 +1,6 @@
 {
-    "extends": "vaffel/react"
+    "extends": "vaffel/react",
+    "rules": {
+        "react/no-multi-comp": 0
+    }
 }

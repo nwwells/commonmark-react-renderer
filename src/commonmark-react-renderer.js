@@ -5,6 +5,48 @@ var assign = require('lodash.assign');
 var isPlainObject = require('lodash.isplainobject');
 var xssFilters = require('xss-filters');
 
+var HtmlRenderer = React.createClass({
+    displayName: 'HtmlRenderer',
+    render: function() {
+        var props = this.props;
+        var nodeProps = props.escapeHtml ? {} : { dangerouslySetInnerHTML: { __html: props.literal } };
+        var children = props.escapeHtml ? [props.literal] : null;
+
+        if (props.escapeHtml || !props.skipHtml) {
+            return createElement(props.isBlock ? 'div' : 'span', nodeProps, children);
+        }
+    }
+});
+var List = React.createClass({
+    displayName: 'List',
+    render: function() {
+        var props = this.props;
+        var tag = props.type === 'Bullet' ? 'ul' : 'ol';
+        var attrs = { key: props.key };
+
+        if (props.start !== null && props.start !== 1) {
+            attrs.start = props.start.toString();
+        }
+
+        return createElement(tag, attrs, props.children);
+    }
+});
+var Code = React.createClass({
+    displayName: 'Code',
+    render: function() {
+        var props = this.props;
+        var className = props.language && 'language-' + props.language;
+        var code = createElement('code', { className: className }, props.literal);
+        return createElement('pre', {key: props.key}, code);
+    }
+});
+var Heading = React.createClass({
+    displayName: 'Heading',
+    render: function() {
+        var props = this.props;
+        return createElement('h' + props.level, props, props.children);
+    }
+});
 var defaultRenderers = {
     BlockQuote: 'blockquote',
     Code: 'code',
@@ -20,37 +62,13 @@ var defaultRenderers = {
     HtmlBlock: HtmlRenderer,
     HtmlInline: HtmlRenderer,
 
-    List: function List(props) {
-        var tag = props.type === 'Bullet' ? 'ul' : 'ol';
-        var attrs = { key: props.key };
-
-        if (props.start !== null && props.start !== 1) {
-            attrs.start = props.start.toString();
-        }
-
-        return createElement(tag, attrs, props.children);
-    },
-    CodeBlock: function Code(props) {
-        var className = props.language && 'language-' + props.language;
-        var code = createElement('code', { className: className }, props.literal);
-        return createElement('pre', {key: props.key}, code);
-    },
-    Heading: function Heading(props) {
-        return createElement('h' + props.level, props, props.children);
-    },
+    List: List,
+    CodeBlock: Code,
+    Heading: Heading,
 
     Text: null,
     Softbreak: null
 };
-
-function HtmlRenderer(props) {
-    var nodeProps = props.escapeHtml ? {} : { dangerouslySetInnerHTML: { __html: props.literal } };
-    var children = props.escapeHtml ? [props.literal] : null;
-
-    if (props.escapeHtml || !props.skipHtml) {
-        return createElement(props.isBlock ? 'div' : 'span', nodeProps, children);
-    }
-}
 
 function isGrandChildOfList(node) {
     var grandparent = node.parent.parent;

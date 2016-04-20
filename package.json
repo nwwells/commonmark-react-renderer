@@ -1,5 +1,5 @@
 {
-  "name": "commonmark-react-renderer",
+  "name": "@nwwells/commonmark-react-renderer",
   "description": "React renderer for CommonMark (rationalized Markdown)",
   "version": "4.1.2",
   "keywords": [
@@ -19,9 +19,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:rexxars/commonmark-react-renderer.git"
+    "url": "git@github.com:nwwells/commonmark-react-renderer.git"
   },
-  "author": "Espen Hovlandsdal <espen@hovlandsdal.com>",
+  "author": "Nathan Wells <nwwells@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "chai": "^3.4.0",
@@ -31,16 +31,16 @@
     "eslint-plugin-react": "^3.6.3",
     "istanbul": "^0.4.0",
     "mocha": "^2.3.3",
-    "react": "^0.14.0",
-    "react-dom": "^0.14.0"
+    "react": "0.13.x"
   },
   "peerDependencies": {
-    "react": ">=0.14.0",
+    "react": "0.13.x",
     "commonmark": "^0.24.0"
   },
   "dependencies": {
     "lodash.assign": "^4.0.1",
     "lodash.isplainobject": "^4.0.0",
+    "react": "0.13.3",
     "xss-filters": "^1.2.6"
   }
 }

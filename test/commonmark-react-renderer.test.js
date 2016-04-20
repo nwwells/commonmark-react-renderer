@@ -1,7 +1,6 @@
 'use strict';
 
 var React = require('react'),
-    renderHtml = require('react-dom/server'),
     commonmark = require('commonmark'),
     expect = require('chai').expect,
     ReactRenderer = require('../');
@@ -23,6 +22,13 @@ var CodeBlockComponent = React.createClass({
     }
 });
 
+var HeadingComponent = React.createClass({
+    displayName: 'Heading',
+    render: function() {
+        var props = this.props;
+        return React.createElement('div', {className: 'level-' + props.level}, props.children);
+    }
+});
 describe('react-markdown', function() {
     it('should wrap single-line plain text in a paragraph', function() {
         var input = 'React is awesome';
@@ -35,15 +41,15 @@ describe('react-markdown', function() {
         expect(parse(input)).to.equal(expected);
     });
 
-    it('should handle <br/> as softbreak', function() {
+    it('should handle <br> as softbreak', function() {
         var input = 'React is awesome\nAnd so is markdown\n\nCombining = epic';
-        var expected = '<p>React is awesome<br/>And so is markdown</p><p>Combining = epic</p>';
+        var expected = '<p>React is awesome<br>And so is markdown</p><p>Combining = epic</p>';
         expect(parse(input, { softBreak: 'br' })).to.equal(expected);
     });
 
     it('should handle multi-space+break as hardbreak', function() {
         var input = 'React is awesome  \nAnd so is markdown';
-        var expected = '<p>React is awesome<br/>And so is markdown</p>';
+        var expected = '<p>React is awesome<br>And so is markdown</p>';
         expect(parse(input)).to.equal(expected);
     });
 
@@ -73,13 +79,13 @@ describe('react-markdown', function() {
 
     it('should handle images without title tags', function() {
         var input = 'This is ![an image](/ninja.png).';
-        var expected = '<p>This is <img src="/ninja.png" alt="an image"/>.</p>';
+        var expected = '<p>This is <img src="/ninja.png" alt="an image">.</p>';
         expect(parse(input)).to.equal(expected);
     });
 
     it('should handle images without title tags', function() {
         var input = 'This is ![an image](/ninja.png "foo bar").';
-        var expected = '<p>This is <img src="/ninja.png" title="foo bar" alt="an image"/>.</p>';
+        var expected = '<p>This is <img src="/ninja.png" title="foo bar" alt="an image">.</p>';
         expect(parse(input)).to.equal(expected);
     });
 
@@ -99,14 +105,14 @@ describe('react-markdown', function() {
 
     it('should handle code tags without any specifications', function() {
         var input = '```\nvar foo = require(\'bar\');\nfoo();\n```';
-        var expected = '<pre><code>var foo = require(&#x27;bar&#x27;);\nfoo();\n</code></pre>';
+        var expected = '<pre>\n<code>var foo = require(&#x27;bar&#x27;);\nfoo();\n</code></pre>';
         expect(parse(input)).to.equal(expected);
     });
 
     it('should handle code tags with language specification', function() {
         var input = '```js\nvar foo = require(\'bar\');\nfoo();\n```';
         var expected = [
-            '<pre><code class="language-js">',
+            '<pre>\n<code class="language-js">',
             'var foo = require(&#x27;bar&#x27;);\n',
             'foo();\n</code></pre>'
         ].join('');
@@ -121,7 +127,7 @@ describe('react-markdown', function() {
         ].join('    ');
 
         var expected = [
-            '<pre><code>&lt;footer class=&quot;footer&quot;&gt;\n    ',
+            '<pre>\n<code>&lt;footer class=&quot;footer&quot;&gt;\n    ',
             '&amp;copy; 2014 Foo Bar\n&lt;/footer&gt;\n</code></pre>'
         ].join('');
 
@@ -237,7 +243,7 @@ describe('react-markdown', function() {
 
     it('should handle horizontal rules', function() {
         var input = 'Foo\n\n------------\n\nBar';
-        var expected = '<p>Foo</p><hr/><p>Bar</p>';
+        var expected = '<p>Foo</p><hr><p>Bar</p>';
         expect(parse(input)).to.equal(expected);
     });
 
@@ -252,7 +258,7 @@ describe('react-markdown', function() {
         var input = 'Foo\n\n------------\n\nBar';
         var expected = [
             '<p data-sourcepos="1:1-1:3">Foo</p>',
-            '<hr data-sourcepos="3:1-3:12"/>',
+            '<hr data-sourcepos="3:1-3:12">',
             '<p data-sourcepos="5:1-5:3">Bar</p>'
         ].join('');
 
@@ -298,17 +304,17 @@ describe('react-markdown', function() {
     describe('should skip nodes that are defined as disallowed', function() {
         var samples = {
             HtmlInline: { input: 'Foo<strong>bar</strong>', shouldNotContain: 'Foo<span><strong>' },
-            HtmlBlock: { input: '<pre>\n<code>var foo = "bar";\n</code>\n</pre>\nYup', shouldNotContain: 'var foo' },
+            HtmlBlock: { input: '<pre><code>var foo = "bar";\n</code>\n</pre>\nYup', shouldNotContain: 'var foo' },
             Text: { input: 'Zing', shouldNotContain: 'Zing' },
             Paragraph: { input: 'Paragraphs are cool', shouldNotContain: 'Paragraphs are cool' },
             Heading: { input: '# Headers are neat', shouldNotContain: 'Headers are neat' },
             Softbreak: { input: 'Text\nSoftbreak', shouldNotContain: 'Text\nSoftbreak' },
-            Hardbreak: { input: 'Text  \nHardbreak', shouldNotContain: '<br/>' },
+            Hardbreak: { input: 'Text  \nHardbreak', shouldNotContain: '<br>' },
             Link: { input: '[Espen\'s blog](http://espen.codes/) yeh?', shouldNotContain: '<a' },
             Image: { input: 'Holy ![ninja](/ninja.png), batman', shouldNotContain: '<img' },
             Emph: { input: 'Many *contributors*', shouldNotContain: '<em' },
             Code: { input: 'Yeah, `renderToStaticMarkup()`', shouldNotContain: 'renderToStaticMarkup' },
-            CodeBlock: { input: '```\nvar moo = require(\'bar\');\moo();\n```', shouldNotContain: '<pre><code>' },
+            CodeBlock: { input: '```\nvar moo = require(\'bar\');\moo();\n```', shouldNotContain: '<pre>\n<code>' },
             BlockQuote: { input: '> Moo\n> Tools\n> FTW\n', shouldNotContain: '<blockquote' },
             List: { input: '* A list\n*Of things', shouldNotContain: 'Of things' },
             Item: { input: '* IPA\n*Imperial Stout\n', shouldNotContain: '<li' },
@@ -386,14 +392,12 @@ describe('react-markdown', function() {
         var input = '# Header\n---\nParagraph a day...\n```js\nvar keepTheDoctor = "away";\n```\n> Foo';
         expect(parse(input, {
             renderers: {
-                Heading: function(props) {
-                    return React.createElement('div', {className: 'level-' + props.level}, props.children);
-                },
+                Heading: HeadingComponent,
                 CodeBlock: CodeBlockComponent
             }
         }).replace(/&quot;/g, '"')).to.equal([
-            '<div class="level-1">Header</div><hr/><p>Paragraph a day...</p>',
-            '<pre>{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n"}</pre>',
+            '<div class="level-1">Header</div><hr><p>Paragraph a day...</p>',
+            '<pre>\n{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n"}</pre>',
             '<blockquote><p>Foo</p></blockquote>'
         ].join(''));
     });
@@ -497,7 +501,7 @@ function parse(markdown, opts) {
     var ast = parser.parse(markdown);
     var result = getRenderer(opts).render(ast);
 
-    var html = renderHtml.renderToStaticMarkup(
+    var html = React.renderToStaticMarkup(
         React.createElement.apply(React, ['div', null].concat(result))
     );
 
